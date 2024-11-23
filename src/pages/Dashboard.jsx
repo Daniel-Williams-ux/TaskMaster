@@ -6,39 +6,31 @@ const Dashboard = () => {
     { id: 2, title: "Build TaskMaster", priority: "Medium", dueDate: "2024-12-01" },
   ]);
 
-  // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTask, setNewTask] = useState({ title: "", priority: "Low", dueDate: "" });
 
-  //Add Edit Functionality
   const [taskToEdit, setTaskToEdit] = useState(null);
-
-  //Add a state to track the search query
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterPriority, setFilterPriority] = useState("All");
 
-  // Function to handle task addition
+  // Function to handle task addition or update
   const handleAddTask = () => {
     if (taskToEdit) {
-      // Update the existing task
       const updatedTasks = tasks.map((task) =>
         task.id === taskToEdit.id ? { ...task, ...newTask } : task
       );
       setTasks(updatedTasks);
-      setTaskToEdit(null); // Reset edit state
+      setTaskToEdit(null);
     } else {
-      // Add a new task
       const updatedTasks = [
         ...tasks,
-        { id: tasks.length + 1, ...newTask }, // Add new task with unique ID
+        { id: tasks.length + 1, ...newTask },
       ];
       setTasks(updatedTasks);
     }
-  
-    // Reset modal and form
     setNewTask({ title: "", priority: "Low", dueDate: "" });
     setIsModalOpen(false);
   };
-  
 
   // Function to handle task deletion
   const handleDeleteTask = (id) => {
@@ -46,16 +38,50 @@ const Dashboard = () => {
     setTasks(updatedTasks);
   };
 
-  //Filter Tasks Based on the Search Query
-  const filteredTasks = tasks.filter((task) =>
-    task.title.toLowerCase().includes(searchQuery.toLowerCase())
-  ); 
+  // Helper Function for Task Filtering
+//   const filterTasks = () => {
+//     return tasks.filter((task) => {
+//       const matchesSearch = searchQuery
+//         .toLowerCase()
+//         .split(" ")
+//         .every((word) => task.title.toLowerCase().includes(word));
+//       const matchesPriority =
+//         filterPriority === "All" || task.priority === filterPriority;
+
+//       return matchesSearch && matchesPriority;
+//     });
+//   };
+
+const filteredTasks = tasks.filter((task) => {
+    // Split the search query into words, ignoring empty spaces
+    const searchWords = searchQuery
+      .toLowerCase()
+      .split(" ")
+      .filter((word) => word.trim() !== "");
+  
+    // Check if task matches search query (if search query exists)
+    const matchesSearch =
+      searchWords.length === 0 || // If no search query, match all tasks
+      searchWords.every((word) => task.title.toLowerCase().includes(word));
+  
+    // Check if task matches priority filter
+    const matchesPriority =
+      filterPriority === "All" || task.priority === filterPriority;
+  
+    // Return tasks that match both search and priority
+    return matchesSearch && matchesPriority;
+    // console.log("Task:", task);
+    // console.log("Search Words:", searchWords);
+    // console.log("Matches Search:", matchesSearch);
+    // console.log("Matches Priority:", matchesPriority);
+
+  });
+  
 
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Task Dashboard</h2>
 
-      {/* Add Task Button */}
       <div className="flex justify-between items-center mb-4">
         <button
           onClick={() => setIsModalOpen(true)}
@@ -63,23 +89,35 @@ const Dashboard = () => {
         >
           Add Task
         </button>
-        <input
+
+        <div className="flex gap-4">
+          <input
             type="text"
             placeholder="Search tasks..."
             className="border border-gray-300 rounded px-3 py-2"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-        />
+          />
 
+          <select
+            value={filterPriority}
+            onChange={(e) => setFilterPriority(e.target.value)}
+            className="border border-gray-300 rounded px-3 py-2"
+          >
+            <option key="all" value="All">All</option>
+            <option key="low" value="Low">Low</option>
+            <option key="medium" value="Medium">Medium</option>
+            <option key="high" value="High">High</option>
+          </select>
+        </div>
       </div>
 
-      {/* Task List */}
       <div className="space-y-4">
-      {filteredTasks.length > 0 ? (
-        filteredTasks.map((task) => (
+        {filteredTasks.length > 0 ? (
+          filteredTasks.map((task) => (
             <div
-            key={task.id}
-            className="p-4 bg-white rounded shadow flex justify-between items-center"
+              key={task.id}
+              className="p-4 bg-white rounded shadow flex justify-between items-center"
             >
               <div>
                 <h3 className="text-lg font-bold">{task.title}</h3>
@@ -87,24 +125,23 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-600">Due: {task.dueDate}</p>
               </div>
               <div className="flex gap-2">
-              <button
-                    onClick={() => {
-                        setTaskToEdit(task);
-                        setNewTask(task); // Populate modal fields
-                        setIsModalOpen(true);
-                    }}
-                    className="text-blue-600 hover:underline"
-                    >
-                    Edit
+                <button
+                  onClick={() => {
+                    setTaskToEdit(task);
+                    setNewTask(task);
+                    setIsModalOpen(true);
+                  }}
+                  className="text-blue-600 hover:underline"
+                >
+                  Edit
                 </button>
 
                 <button
-                    onClick={() => handleDeleteTask(task.id)}
-                    className="text-red-600 hover:underline"
-                    >
-                    Delete
+                  onClick={() => handleDeleteTask(task.id)}
+                  className="text-red-600 hover:underline"
+                >
+                  Delete
                 </button>
-
               </div>
             </div>
           ))
@@ -113,11 +150,10 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* Modal for Adding Tasks */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded shadow w-96">
-            <h3 className="text-xl font-bold mb-4">Add New Task</h3>
+            <h3 className="text-xl font-bold mb-4">{taskToEdit ? "Edit Task" : "Add New Task"}</h3>
             <div className="mb-4">
               <label className="block mb-1 text-gray-700">Task Title</label>
               <input
@@ -149,22 +185,22 @@ const Dashboard = () => {
               />
             </div>
             <div className="flex justify-end gap-2">
-            <button
+              <button
                 onClick={() => {
-                    setIsModalOpen(false);
-                    setTaskToEdit(null); // Reset edit state
-                    setNewTask({ title: "", priority: "Low", dueDate: "" }); // Reset form
+                  setIsModalOpen(false);
+                  setTaskToEdit(null);
+                  setNewTask({ title: "", priority: "Low", dueDate: "" });
                 }}
                 className="text-gray-600 hover:underline"
-                >
+              >
                 Cancel
-            </button>
+              </button>
 
               <button
                 onClick={handleAddTask}
                 className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
               >
-                Add Task
+                {taskToEdit ? "Update Task" : "Add Task"}
               </button>
             </div>
           </div>
