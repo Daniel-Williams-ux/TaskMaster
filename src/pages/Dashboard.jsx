@@ -9,17 +9,32 @@ const Dashboard = () => {
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTask, setNewTask] = useState({ title: "", priority: "Low", dueDate: "" });
+  //Add Edit Functionality
+  const [taskToEdit, setTaskToEdit] = useState(null);
 
   // Function to handle task addition
   const handleAddTask = () => {
-    const updatedTasks = [
-      ...tasks,
-      { id: tasks.length + 1, ...newTask }, // Add new task with unique ID
-    ];
-    setTasks(updatedTasks);
-    setNewTask({ title: "", priority: "Low", dueDate: "" }); // Reset form
-    setIsModalOpen(false); // Close modal
+    if (taskToEdit) {
+      // Update the existing task
+      const updatedTasks = tasks.map((task) =>
+        task.id === taskToEdit.id ? { ...task, ...newTask } : task
+      );
+      setTasks(updatedTasks);
+      setTaskToEdit(null); // Reset edit state
+    } else {
+      // Add a new task
+      const updatedTasks = [
+        ...tasks,
+        { id: tasks.length + 1, ...newTask }, // Add new task with unique ID
+      ];
+      setTasks(updatedTasks);
+    }
+  
+    // Reset modal and form
+    setNewTask({ title: "", priority: "Low", dueDate: "" });
+    setIsModalOpen(false);
   };
+  
 
   // Function to handle task deletion
   const handleDeleteTask = (id) => {
@@ -61,7 +76,17 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-600">Due: {task.dueDate}</p>
               </div>
               <div className="flex gap-2">
-                <button className="text-blue-600 hover:underline">Edit</button>
+              <button
+                    onClick={() => {
+                        setTaskToEdit(task);
+                        setNewTask(task); // Populate modal fields
+                        setIsModalOpen(true);
+                    }}
+                    className="text-blue-600 hover:underline"
+                    >
+                    Edit
+                </button>
+
                 <button
                     onClick={() => handleDeleteTask(task.id)}
                     className="text-red-600 hover:underline"
@@ -113,12 +138,17 @@ const Dashboard = () => {
               />
             </div>
             <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setIsModalOpen(false)}
+            <button
+                onClick={() => {
+                    setIsModalOpen(false);
+                    setTaskToEdit(null); // Reset edit state
+                    setNewTask({ title: "", priority: "Low", dueDate: "" }); // Reset form
+                }}
                 className="text-gray-600 hover:underline"
-              >
+                >
                 Cancel
-              </button>
+            </button>
+
               <button
                 onClick={handleAddTask}
                 className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
