@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 const Dashboard = () => {
   const [tasks, setTasks] = useState([
@@ -9,8 +9,12 @@ const Dashboard = () => {
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTask, setNewTask] = useState({ title: "", priority: "Low", dueDate: "" });
+
   //Add Edit Functionality
   const [taskToEdit, setTaskToEdit] = useState(null);
+
+  //Add a state to track the search query
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Function to handle task addition
   const handleAddTask = () => {
@@ -41,7 +45,11 @@ const Dashboard = () => {
     const updatedTasks = tasks.filter((task) => task.id !== id);
     setTasks(updatedTasks);
   };
-  
+
+  //Filter Tasks Based on the Search Query
+  const filteredTasks = tasks.filter((task) =>
+    task.title.toLowerCase().includes(searchQuery.toLowerCase())
+  ); 
 
   return (
     <div className="container mx-auto p-4">
@@ -56,19 +64,22 @@ const Dashboard = () => {
           Add Task
         </button>
         <input
-          type="text"
-          placeholder="Search tasks..."
-          className="border border-gray-300 rounded px-3 py-2"
+            type="text"
+            placeholder="Search tasks..."
+            className="border border-gray-300 rounded px-3 py-2"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
         />
+
       </div>
 
       {/* Task List */}
       <div className="space-y-4">
-        {tasks.length > 0 ? (
-          tasks.map((task) => (
+      {filteredTasks.length > 0 ? (
+        filteredTasks.map((task) => (
             <div
-              key={task.id}
-              className="p-4 bg-white rounded shadow flex justify-between items-center"
+            key={task.id}
+            className="p-4 bg-white rounded shadow flex justify-between items-center"
             >
               <div>
                 <h3 className="text-lg font-bold">{task.title}</h3>
